@@ -13,14 +13,15 @@ services:
       - DB_PASSWORD=postgres
       - DB_DATABASE=notification_system
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - NEXT_PUBLIC_API_URL=http://backend:3001
 
   db:
     image: postgres:14-alpine
@@ -31,6 +32,11 @@ services:
       POSTGRES_DB: notification_system
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
